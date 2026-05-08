@@ -1,0 +1,116 @@
+{
+  "info": {
+    "name": "RAPITAXI Expediente API",
+    "description": "Colección de endpoints para el sistema de expedientes de RAPITAXI",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Revisiones Vehiculares",
+      "item": [
+        {
+          "name": "Registrar Revisión Vehicular",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"vehiculo_id\": 1,\n  \"registrado_por\": 1,\n  \"fecha_revision\": \"2026-05-07\",\n  \"resultado\": \"Aprobado\",\n  \"observacion\": \"Vehículo en buen estado, sin observaciones\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/revisiones-vehiculares",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "revisiones-vehiculares"
+              ]
+            },
+            "description": "Registra una revisión técnica de un vehículo y actualiza su fecha de última revisión"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Expedientes",
+      "item": [
+        {
+          "name": "Crear Expediente",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"socio_id\": 1,\n  \"vehiculo_id\": 1,\n  \"elaborado_por\": 1,\n  \"fecha_emision\": \"2026-05-07\",\n  \"observacion_general\": \"Expediente digital del socio regularizado\",\n  \"estado\": \"Abierto\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/expedientes",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "expedientes"
+              ]
+            },
+            "description": "Crea un expediente para un socio y su vehículo. El código se genera automáticamente si no se proporciona."
+          },
+          "response": []
+        },
+        {
+          "name": "Generar Acta del Expediente",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/expedientes/1/acta",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "expedientes",
+                "1",
+                "acta"
+              ]
+            },
+            "description": "Genera el documento consolidado del expediente con datos del miembro, vehículo, revisiones e historial de mantenimientos. Reemplaza '1' con el ID del expediente."
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8000",
+      "type": "string"
+    }
+  ]
+}

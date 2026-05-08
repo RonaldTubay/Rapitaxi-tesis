@@ -1,0 +1,273 @@
+RAPITAXI API - EXPEDIENTE WORKFLOW
+==================================
+
+Base URL: http://localhost:8000/api
+
+================================================================================
+1. REGISTRAR REVISIÓN VEHICULAR
+================================================================================
+
+Endpoint: POST /api/revisiones-vehiculares
+
+Descripción:
+- Registra una revisión técnica de un vehículo
+- Actualiza automáticamente la fecha_ultima_revision del vehículo si es más reciente
+
+Request Body:
+{
+  "vehiculo_id": 1,
+  "registrado_por": 1,
+  "fecha_revision": "2026-05-07",
+  "resultado": "Aprobado",
+  "observacion": "Vehículo en buen estado, sin observaciones"
+}
+
+Response (201 Created):
+{
+  "message": "Revision vehicular registrada correctamente.",
+  "data": {
+    "id": 1,
+    "vehiculo_id": 1,
+    "registrado_por": 1,
+    "fecha_revision": "2026-05-07",
+    "resultado": "Aprobado",
+    "observacion": "Vehículo en buen estado, sin observaciones",
+    "created_at": "2026-05-07T23:45:00.000000Z",
+    "updated_at": "2026-05-07T23:45:00.000000Z",
+    "vehiculo": {
+      "id": 1,
+      "numero_vehicular": "NV-0001",
+      "codigo_taxi": "TAX-001",
+      "placa": "ABC-1234",
+      ...
+    },
+    "registradoPor": {
+      "id": 1,
+      "name": "Juan Pérez",
+      "email": "juan@example.com",
+      ...
+    }
+  }
+}
+
+Valores válidos para 'resultado':
+- "Aprobado"
+- "Observado"
+- "Rechazado"
+
+Validaciones:
+- vehiculo_id: requerido, debe existir en tabla vehiculos
+- fecha_revision: requerido, debe ser fecha válida
+- resultado: requerido, debe ser uno de los valores permitidos
+- registrado_por: opcional, si se envía debe existir en tabla users
+
+================================================================================
+2. CREAR EXPEDIENTE
+================================================================================
+
+Endpoint: POST /api/expedientes
+
+Descripción:
+- Crea un expediente de un miembro/socio con su vehículo
+- Valida que el vehículo pertenezca al socio indicado
+- Genera código automático si no se proporciona
+- El código tiene formato: EXP-YYYYMMDD-XXXX
+
+Request Body:
+{
+  "socio_id": 1,
+  "vehiculo_id": 1,
+  "elaborado_por": 1,
+  "fecha_emision": "2026-05-07",
+  "observacion_general": "Expediente digital del socio regularizado",
+  "estado": "Abierto"
+}
+
+Response (201 Created):
+{
+  "message": "Expediente creado correctamente.",
+  "data": {
+    "id": 1,
+    "codigo": "EXP-20260507-0001",
+    "socio_id": 1,
+    "vehiculo_id": 1,
+    "elaborado_por": 1,
+    "fecha_emision": "2026-05-07",
+    "observacion_general": "Expediente digital del socio regularizado",
+    "estado": "Abierto",
+    "created_at": "2026-05-07T23:50:00.000000Z",
+    "updated_at": "2026-05-07T23:50:00.000000Z",
+    "socio": {
+      "id": 1,
+      "nombre": "Carlos Ramírez González",
+      "cedula": "123-456789-0",
+      "telefono": "+1 (555) 123-4567",
+      "correo": "carlos@example.com",
+      "estado": "Activo",
+      ...
+    },
+    "vehiculo": {
+      "id": 1,
+      "numero_vehicular": "NV-0001",
+      "codigo_taxi": "TAX-001",
+      "placa": "ABC-1234",
+      ...
+    },
+    "elaboradoPor": {
+      "id": 1,
+      "name": "Juan Pérez",
+      "email": "juan@example.com"
+    }
+  }
+}
+
+Campos opcionales:
+- codigo: si no se envía, se genera automáticamente
+- fecha_emision: si no se envía, se asigna hoy
+- estado: si no se envía, se asigna "Abierto"
+
+Validaciones:
+- socio_id: requerido, debe existir en tabla socios
+- vehiculo_id: requerido, debe existir en tabla vehiculos y pertenecer al socio
+- elaborado_por: opcional, si se envía debe existir en tabla users
+- codigo: opcional, debe ser único si se proporciona
+
+Error si vehículo no pertenece al socio:
+{
+  "message": "El vehiculo no pertenece al socio indicado."
+}
+
+================================================================================
+3. GENERAR ACTA DEL EXPEDIENTE
+================================================================================
+
+Endpoint: GET /api/expedientes/{expediente}/acta
+
+Descripción:
+- Genera el documento consolidado del expediente
+- Incluye datos del miembro, vehículo, revisiones e historial de mantenimientos
+- Es un documento de lectura solamente
+
+Request:
+No requiere body
+
+Response (200 OK):
+{
+  "message": "Acta generada correctamente.",
+  "data": {
+    "empresa": "RAPITAXI",
+    "expediente_codigo": "EXP-20260507-0001",
+    "fecha_emision": "2026-05-07",
+    "miembro": {
+      "id": 1,
+      "nombre": "Carlos Ramírez González",
+      "cedula": "123-456789-0",
+      "telefono": "+1 (555) 123-4567",
+      "correo": "carlos@example.com",
+      "estado": "Activo"
+    },
+    "vehiculo": {
+      "id": 1,
+      "numero_vehicular": "NV-0001",
+      "placa": "ABC-1234",
+      "marca": "Toyota Corolla",
+      "color": "Blanco",
+      "anio_modelo": 2023,
+      "nombre_accionista": "Carlos Ramírez González",
+      "fecha_ultima_revision": "2026-05-07",
+      "observacion": "Vehículo en buen estado",
+      "estado": "Operativo"
+    },
+    "revision_vehicular_actual": {
+      "fecha_revision": "2026-05-07",
+      "resultado": "Aprobado",
+      "observacion": "Vehículo en buen estado, sin observaciones",
+      "registrado_por": "Juan Pérez"
+    },
+    "historial_revisiones": [
+      {
+        "id": 1,
+        "fecha_revision": "2026-05-07",
+        "resultado": "Aprobado",
+        "observacion": "Vehículo en buen estado, sin observaciones",
+        "registrado_por": "Juan Pérez"
+      }
+    ],
+    "historial_mantenimientos": [
+      {
+        "id": 1,
+        "tipo": "Cambio de aceite",
+        "descripcion": "Cambio de aceite sintético 5W-30 y filtro",
+        "fecha": "2026-04-15",
+        "mecanico": "José Méndez",
+        "kilometraje_actual": 45230,
+        "costo": "45.00",
+        "estado": "Completado"
+      },
+      {
+        "id": 2,
+        "tipo": "Revisión de frenos",
+        "descripcion": "Revisión completa del sistema de frenos",
+        "fecha": "2026-04-14",
+        "mecanico": "Roberto Cruz",
+        "kilometraje_actual": 62100,
+        "costo": "120.00",
+        "estado": "Completado"
+      }
+    ],
+    "elaborado_por": "Juan Pérez",
+    "observacion_general": "Expediente digital del socio regularizado",
+    "estado_expediente": "Abierto"
+  }
+}
+
+================================================================================
+FLUJO COMPLETO EJEMPLO
+================================================================================
+
+Paso 1: Registrar una revisión vehicular
+POST /api/revisiones-vehiculares
+{
+  "vehiculo_id": 1,
+  "registrado_por": 1,
+  "fecha_revision": "2026-05-07",
+  "resultado": "Aprobado",
+  "observacion": "Revisión exitosa"
+}
+
+Paso 2: Crear expediente para el socio y vehículo
+POST /api/expedientes
+{
+  "socio_id": 1,
+  "vehiculo_id": 1,
+  "elaborado_por": 1,
+  "observacion_general": "Expediente generado para revisión"
+}
+
+Paso 3: Obtener el acta consolidada (reemplaza {id} con el ID del expediente)
+GET /api/expedientes/1/acta
+
+================================================================================
+NOTAS IMPORTANTES
+================================================================================
+
+1. Las fechas deben estar en formato: YYYY-MM-DD
+
+2. El ID del expediente se obtiene de la respuesta del POST /api/expedientes
+
+3. El acta consolida:
+   - Datos personales del socio
+   - Información completa del vehículo (incluyendo documentos)
+   - Última revisión técnica realizada
+   - Historial completo de revisiones
+   - Historial completo de mantenimientos
+   - Información del empleado que elaboró el expediente
+
+4. Los valores de 'estado' para expediente son:
+   - "Abierto"
+   - "Cerrado"
+
+5. La fecha de última revisión del vehículo se actualiza automáticamente
+   cuando se registra una revisión más reciente
+
+================================================================================
